@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0910">
+<title>ROSEK Studio</title>
+<style>
+:root{--bg:#0b0910;--card:#15111d;--line:#2a2338;--tx:#f3eefb;--mu:#9d93b3;--ac:#b86bff;--ac2:#ff5fa2;--ok:#5fe3a1;--er:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:760px;margin:0 auto;padding:28px 18px 60px}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;font-weight:800;font-size:22px;color:#0b0910}
+.brand b{font-size:19px;display:block;line-height:1.1}.brand span{color:var(--mu);font-size:13px}
+h1{font-size:clamp(30px,7vw,46px);line-height:1.08;margin:0 0 12px;letter-spacing:-.02em}
+.lead{color:var(--mu);margin:0 0 30px;max-width:56ch}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px}
+h2{font-size:18px;margin:0 0 4px}.sub{color:var(--mu);margin:0 0 16px;font-size:14px}
+#drop{display:block;border:2px dashed var(--line);border-radius:14px;padding:30px 16px;text-align:center;cursor:pointer;transition:.15s}
+#drop:hover,#drop.over{border-color:var(--ac);background:#1c1528}
+#drop b{display:block;margin-bottom:4px}#drop small{color:var(--mu)}
+input[type=file]{display:none}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+@media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:#0f0b16;border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.stat small{color:var(--mu);display:block;font-size:12px}.stat b{font-size:15px;overflow-wrap:anywhere}
+.grid{display:grid;gap:14px}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+label.f{display:block;font-size:13px;color:var(--mu)}
+select{width:100%;margin-top:5px;background:#0f0b16;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:11px 10px;font:inherit}
+select:focus,button:focus-visible,#drop:focus-within{outline:2px solid var(--ac);outline-offset:2px}
+.chk{display:flex;gap:10px;align-items:center;margin:16px 0;color:var(--tx)}
+.chk input{width:18px;height:18px;accent-color:var(--ac)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+button,a.btn{border:0;border-radius:12px;padding:13px 20px;font:600 16px system-ui,sans-serif;cursor:pointer;text-decoration:none;display:inline-block;text-align:center}
+#go{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#0b0910;flex:1;min-width:180px}
+#go:disabled{opacity:.4;cursor:not-allowed}
+#stop{background:#2a2338;color:var(--tx)}
+a.btn{background:var(--ok);color:#0b0910}
+.bar{height:10px;background:#0f0b16;border-radius:99px;overflow:hidden;margin-top:16px;border:1px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .2s}
+#msg{margin:12px 0 0;color:var(--mu);min-height:1.5em;overflow-wrap:anywhere}#msg.er{color:var(--er)}#msg.ok{color:var(--ok)}
+video{width:100%;max-height:60vh;border-radius:12px;background:#000;margin-top:16px}
+footer{color:var(--mu);font-size:13px;text-align:center;margin-top:30px}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="logo">R</div><div><b>ROSEK Studio</b><span>Herramientas de video en tu navegador</span></div></div>
+  <h1>Tu video. Tu calidad. Tu método de upload.</h1>
+  <p class="lead">Analizá tu edit y generá un MP4 H.264 listo para subir. Todo se procesa en tu navegador: el video no se envía a ningún servidor.</p>
+
+  <section>
+    <h2>1. Elegí tu video</h2>
+    <p class="sub">Funciona con MP4, MOV y M4V que tengan video H.264 (o HEVC, si tu navegador lo soporta).</p>
+    <label id="drop" for="file"><b>Arrastrá tu video o tocá para elegirlo</b><small>El archivo se queda en tu dispositivo</small></label>
+    <input type="file" id="file" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v">
+    <div class="stats">
+      <div class="stat"><small>Resolución</small><b id="s-res">—</b></div>
+      <div class="stat"><small>Duración</small><b id="s-dur">—</b></div>
+      <div class="stat"><small>FPS elegido</small><b id="s-fps">Origen</b></div>
+      <div class="stat"><small>Archivo</small><b id="s-file">—</b></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Preparar la exportación</h2>
+    <p class="sub">La calidad se controla con el bitrate: más calidad significa un archivo más pesado.</p>
+    <div class="grid">
+      <label class="f">Frecuencia de cuadros
+        <select id="fps"><option value="src" selected>Conservar FPS de origen</option><option value="30">30 FPS</option><option value="60">60 FPS</option><option value="120">120 FPS</option></select></label>
+      <label class="f">Calidad
+        <select id="q"><option value="16">Máxima calidad</option><option value="18">Muy alta</option><option value="20" selected>Alta</option><option value="23">Equilibrada</option><option value="26">Archivo más pequeño</option></select></label>
+      <label class="f">Resolución de salida
+        <select id="res"><option value="keep" selected>Conservar resolución</option><option value="hd_h">1080p horizontal</option><option value="hd_v">1080p vertical</option><option value="uhd_h">4K horizontal</option><option value="uhd_v">4K vertical</option></select></label>
+      <label class="f">Códec de salida
+        <select id="codec" disabled><option>H.264 / AVC (más compatible)</option></select></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="audio" checked> Conservar el audio del video</label>
+    <div class="row">
+      <button id="go" disabled>Convertir a MP4</button>
+      <button id="stop" hidden>Cancelar</button>
+    </div>
+    <div class="bar" id="bar" hidden><i id="fill"></i></div>
+    <p id="msg">Elegí un video para comenzar.</p>
+  </section>
+
+  <section id="result" hidden>
+    <h2>3. Tu MP4 está listo</h2>
+    <p class="sub" id="r-info"></p>
+    <a class="btn" id="dl" download>Descargar MP4</a>
+    <video id="pv" controls playsinline></video>
+  </section>
+
+  <footer>ROSEK Studio · Herramienta de navegador. Mantené esta pestaña abierta y visible mientras convierte.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const BPP = { 16: .20, 18: .15, 20: .11, 23: .075, 26: .05 };          // bits por píxel
+const SIZES = { keep: null, hd_h: [1920, 1080], hd_v: [1080, 1920], uhd_h: [3840, 2160], uhd_v: [2160, 3840] };
+let file = null, info = null, cancel = false, busy = false, outUrl = null;
+
+const fmtT = (s) => { s = Math.round(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const fmtB = (b) => b > 1e9 ? (b / 1e9).toFixed(2) + ' GB' : (b / 1e6).toFixed(1) + ' MB';
+const msg = (t, k) => { const m = $('#msg'); m.textContent = t; m.className = k || ''; };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+if (typeof VideoEncoder === 'undefined' || typeof VideoDecoder === 'undefined')
+  msg('Este navegador no tiene WebCodecs. Abrí el sitio en Chrome o Edge (computadora) o en Safari reciente.', 'er');
+
+// ---- lectura de MP4 con mp4box ----
+function descOf(e) {
+  const b = e.avcC || e.hvcC || e.av1C; if (!b) return undefined;
+  const s = new DataStream(undefined, 0, DataStream.BIG_ENDIAN); b.write(s);
+  return new Uint8Array(s.buffer, 8);
+}
+async function parseFile(f, { ready, samples, drain, infoOnly }) {
+  const mp4 = MP4Box.createFile(); let err = null, isReady = false;
+  mp4.onError = (e) => { err = new Error('No se pudo leer el archivo (' + e + ').'); };
+  mp4.onReady = (i) => { isReady = true; ready(mp4, i); };
+  mp4.onSamples = (id, u, ss) => samples && samples(id, ss);
+  const CH = 8 << 20; let pos = 0, guard = 0;
+  while (pos < f.size && guard++ < 20000) {
+    if (cancel) throw new Error('Cancelado');
+    const buf = await f.slice(pos, Math.min(pos + CH, f.size)).arrayBuffer();
+    buf.fileStart = pos;
+    const next = mp4.appendBuffer(buf);
+    if (err) throw err;
+    if (infoOnly && isReady) return mp4;
+    if (drain) await drain();
+    pos = (typeof next === 'number' && next > 0) ? next : pos + buf.byteLength;
+  }
+  if (!isReady) throw new Error('El archivo no tiene video MP4/MOV válido.');
+  if (!infoOnly) { mp4.flush(); if (drain) await drain(); }
+  return mp4;
+}
+
+// ---- análisis ----
+async function analyze(f) {
+  file = f; info = null; $('#go').disabled = true; $('#result').hidden = true;
+  $('#s-file').textContent = f.name + ' (' + fmtB(f.size) + ')';
+  msg('Analizando el archivo…');
+  try {
+    let i0;
+    const mp4 = await parseFile(f, { infoOnly: true, ready: (m, i) => { i0 = i; } });
+    const vt = i0.videoTracks[0]; if (!vt) throw new Error('No encontré una pista de video.');
+    const at = i0.audioTracks[0] || null;
+    const m = vt.matrix || [65536, 0, 0, 0, 65536, 0, 0, 0, 1073741824];
+    const rot = ((Math.round(Math.atan2(m[1], m[0]) * 180 / Math.PI) % 360) + 360) % 360;
+    const dur = vt.duration / vt.timescale;
+    const e = mp4.getTrackById(vt.id).mdia.minf.stbl.stsd.entries[0];
+    const vdesc = descOf(e);
+    let adesc;
+    if (at) { const ae = mp4.getTrackById(at.id).mdia.minf.stbl.stsd.entries[0]; adesc = ae.esds && ae.esds.esd.descs[0] && ae.esds.esd.descs[0].descs[0] ? new Uint8Array(ae.esds.esd.descs[0].descs[0].data) : undefined; }
+    const vw = vt.video.width, vh = vt.video.height, swap = rot % 180 !== 0;
+    info = { vt, at, rot, dur, fps: vt.nb_samples / dur, vdesc, adesc, w: swap ? vh : vw, h: swap ? vw : vh,
+      vcfg: { codec: vt.codec, codedWidth: vw, codedHeight: vh, description: vdesc } };
+    const sup = await VideoDecoder.isConfigSupported(info.vcfg);
+    if (!sup.supported) throw new Error('Tu navegador no puede leer el códec de este video (' + vt.codec + '). Exportalo en H.264.');
+    $('#s-res').textContent = info.w + '×' + info.h;
+    $('#s-dur').textContent = fmtT(dur);
+    updFps();
+    $('#go').disabled = false;
+    msg('Listo para convertir (' + info.fps.toFixed(2).replace(/\.00$/, '') + ' FPS de origen, códec ' + vt.codec + ').');
+  } catch (e) { msg(e.message || String(e), 'er'); $('#s-res').textContent = $('#s-dur').textContent = '—'; }
+}
+function updFps() { const v = $('#fps').value; $('#s-fps').textContent = v === 'src' ? 'Origen' + (info ? ' (' + Math.round(info.fps * 100) / 100 + ')' : '') : v; }
+
+// ---- conversión ----
+async function convert() {
+  if (busy || !info) return;
+  busy = true; cancel = false;
+  $('#go').disabled = true; $('#stop').hidden = false; $('#bar').hidden = false; $('#result').hidden = true; $('#file').disabled = true;
+  let dec, enc, prev = null, wl = null;
+  const t0wall = performance.now();
+  try {
+    try { wl = await navigator.wakeLock.request('screen'); } catch (e) {}
+    const outFps = $('#fps').value === 'src' ? 0 : +$('#fps').value;
+    const fpsBase = outFps || info.fps;
+    const size = SIZES[$('#res').value];
+    const W = ((size ? size[0] : info.w) >> 1) << 1, H = ((size ? size[1] : info.h) >> 1) << 1;
+    const bitrate = Math.round(W * H * fpsBase * BPP[$('#q').value]);
+    const rot = info.rot, useCanvas = rot !== 0 || !!size;
+
+    let codec = null;
+    for (const c of ['avc1.640034', 'avc1.64002a', 'avc1.4d0034', 'avc1.42002a']) {
+      const s = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate, framerate: fpsBase, avc: { format: 'avc' } });
+      if (s.supported) { codec = c; break; }
+    }
+    if (!codec) throw new Error('Tu navegador no puede codificar H.264 a ' + W + '×' + H + '. Probá con 1080p.');
+
+    const wantAudio = $('#audio').checked && info.at && /^mp4a\.40/.test(info.at.codec) && info.adesc;
+    const warn = $('#audio').checked && info.at && !wantAudio ? ' (el audio de este archivo no es AAC y no se pudo conservar)' : '';
+    const target = new Mp4Muxer.ArrayBufferTarget();
+    const mux = new Mp4Muxer.Muxer({ target, fastStart: 'in-memory', firstTimestampBehavior: 'offset',
+      video: { codec: 'avc', width: W, height: H, frameRate: fpsBase },
+      ...(wantAudio ? { audio: { codec: 'aac', numberOfChannels: info.at.audio.channel_count, sampleRate: info.at.audio.sample_rate } } : {}) });
+
+    let decErr = null, encErr = null, nEnc = 0, nFed = 0, t0 = null, nextT = 0, a0 = null, firstA = true, mp4ref = null;
+    const dt = outFps ? 1e6 / outFps : 0, kfEvery = Math.max(1, Math.round(fpsBase * 2));
+    enc = new VideoEncoder({ output: (c, m) => mux.addVideoChunk(c, m), error: (e) => { encErr = e; } });
+    enc.configure({ codec, width: W, height: H, bitrate, framerate: fpsBase, avc: { format: 'avc' }, latencyMode: 'quality' });
+
+    const canvas = useCanvas ? new OffscreenCanvas(W, H) : null, ctx = canvas && canvas.getContext('2d', { alpha: false });
+    if (ctx) ctx.imageSmoothingQuality = 'high';
+    const emit = (fr, ts) => {
+      let vf;
+      if (canvas) {
+        const fw = fr.displayWidth, fh = fr.displayHeight, sw = rot % 180 !== 0;
+        const s = Math.min(W / (sw ? fh : fw), H / (sw ? fw : fh));
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+        ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(rot * Math.PI / 180); ctx.scale(s, s);
+        ctx.drawImage(fr, -fw / 2, -fh / 2, fw, fh); ctx.restore();
+        vf = new VideoFrame(canvas, { timestamp: ts, duration: dt || fr.duration || undefined });
+      } else vf = new VideoFrame(fr, { timestamp: ts, duration: dt || fr.duration || undefined });
+      enc.encode(vf, { keyFrame: nEnc % kfEvery === 0 }); vf.close(); nEnc++;
+    };
+    dec = new VideoDecoder({ error: (e) => { decErr = e; }, output: (f) => {
+      if (t0 === null) t0 = f.timestamp;
+      const ts = f.timestamp - t0;
+      if (!outFps) { emit(f, ts); f.close(); return; }
+      if (prev && ts <= prev.ts) { f.close(); return; }
+      if (prev) { while (nextT < ts) { emit(prev.f, Math.round(nextT)); nextT += dt; } prev.f.close(); }
+      prev = { f, ts };
+    } });
+    dec.configure(info.vcfg);
+
+    const vq = []; let vid = 0, aid = 0, lastNum = 0, lastUi = 0;
+    const addAudio = (s) => {
+      const ts = Math.round(s.cts * 1e6 / s.timescale); if (a0 === null) a0 = ts;
+      mux.addAudioChunkRaw(s.data, s.is_sync ? 'key' : 'delta', Math.max(0, ts - a0), Math.round(s.duration * 1e6 / s.timescale),
+        firstA ? { decoderConfig: { codec: 'mp4a.40.2', numberOfChannels: info.at.audio.channel_count, sampleRate: info.at.audio.sample_rate, description: info.adesc } } : undefined);
+      firstA = false;
+    };
+    const drain = async () => {
+      while (vq.length) {
+        if (cancel) throw new Error('Cancelado');
+        if (decErr || encErr) throw decErr || encErr;
+        while ((dec.decodeQueueSize > 30 || enc.encodeQueueSize > 10) && !decErr && !encErr && !cancel) await sleep(4);
+        const s = vq.shift();
+        dec.decode(new EncodedVideoChunk({ type: s.is_sync ? 'key' : 'delta', timestamp: Math.round(s.cts * 1e6 / s.timescale), duration: Math.round(s.duration * 1e6 / s.timescale), data: s.data }));
+        lastNum = s.number; nFed++;
+        if (performance.now() - lastUi > 250) {
+          lastUi = performance.now();
+          const p = nFed / info.vt.nb_samples;
+          $('#fill').style.width = (p * 100).toFixed(1) + '%';
+          const el = (performance.now() - t0wall) / 1000;
+          msg('Convirtiendo… ' + Math.round(p * 100) + '% · ' + (nFed / el).toFixed(0) + ' cuadros/s · faltan ~' + fmtT(el / Math.max(p, .01) - el));
+        }
+      }
+      if (mp4ref && vid) mp4ref.releaseUsedSamples(vid, lastNum + 1);
+    };
+    await parseFile(file, {
+      drain,
+      ready: (mp4, i) => {
+        mp4ref = mp4; vid = i.videoTracks[0].id;
+        mp4.setExtractionOptions(vid, null, { nbSamples: 50 });
+        if (wantAudio) { aid = i.audioTracks[0].id; mp4.setExtractionOptions(aid, null, { nbSamples: 200 }); }
+        mp4.start();
+      },
+      samples: (id, ss) => { if (id === vid) vq.push(...ss); else if (id === aid) ss.forEach(addAudio); }
+    });
+    await drain();
+    await dec.flush();
+    if (decErr) throw decErr;
+    if (outFps && prev) { const end = info.dur * 1e6; while (nextT < end) { emit(prev.f, Math.round(nextT)); nextT += dt; } prev.f.close(); prev = null; }
+    await enc.flush();
+    if (encErr) throw encErr;
+    mux.finalize();
+    const blob = new Blob([target.buffer], { type: 'video/mp4' });
+    if (outUrl) URL.revokeObjectURL(outUrl);
+    outUrl = URL.createObjectURL(blob);
+    $('#dl').href = outUrl; $('#dl').download = file.name.replace(/\.[^.]+$/, '') + '-rosek.mp4';
+    $('#pv').src = outUrl; $('#result').hidden = false;
+    $('#r-info').textContent = W + '×' + H + ' · ' + Math.round(fpsBase * 100) / 100 + ' FPS · ' + (bitrate / 1e6).toFixed(1) + ' Mbps · ' + fmtB(blob.size) + warn;
+    $('#fill').style.width = '100%';
+    msg('Conversión terminada en ' + fmtT((performance.now() - t0wall) / 1000) + '.', 'ok');
+  } catch (e) {
+    msg(e.message === 'Cancelado' ? 'Conversión cancelada.' : 'No se pudo convertir: ' + (e.message || e), 'er');
+  } finally {
+    if (prev) try { prev.f.close(); } catch (e) {}
+    try { dec && dec.state !== 'closed' && dec.close(); } catch (e) {}
+    try { enc && enc.state !== 'closed' && enc.close(); } catch (e) {}
+    try { wl && wl.release(); } catch (e) {}
+    busy = false; $('#go').disabled = false; $('#stop').hidden = true; $('#file').disabled = false;
+    setTimeout(() => { if (!busy) $('#bar').hidden = true; }, 1500);
+  }
+}
+
+// ---- eventos ----
+$('#file').addEventListener('change', (e) => e.target.files[0] && analyze(e.target.files[0]));
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach((n) => drop.addEventListener(n, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((n) => drop.addEventListener(n, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f && !busy) analyze(f); });
+$('#fps').addEventListener('change', updFps);
+$('#go').addEventListener('click', convert);
+$('#stop').addEventListener('click', () => { cancel = true; msg('Cancelando…'); });
+window.addEventListener('beforeunload', (e) => { if (busy) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+</body>
+</html>
