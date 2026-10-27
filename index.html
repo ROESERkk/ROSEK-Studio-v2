@@ -201,7 +201,7 @@ async function convert() {
     const warn = $('#audio').checked && info.at && !wantAudio ? ' (el audio de este archivo no es AAC y no se pudo conservar)' : '';
     const target = new Mp4Muxer.ArrayBufferTarget();
     const mux = new Mp4Muxer.Muxer({ target, fastStart: 'in-memory', firstTimestampBehavior: 'offset',
-      video: { codec: 'avc', width: W, height: H, frameRate: fpsBase },
+      video: { codec: 'avc', width: W, height: H, frameRate: Math.max(1, Math.round(fpsBase)) },
       ...(wantAudio ? { audio: { codec: 'aac', numberOfChannels: info.at.audio.channel_count, sampleRate: info.at.audio.sample_rate } } : {}) });
 
     let decErr = null, encErr = null, nEnc = 0, nFed = 0, t0 = null, nextT = 0, a0 = null, firstA = true, mp4ref = null;
