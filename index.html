@@ -68,8 +68,14 @@ footer{color:var(--mu);font-size:13px;text-align:center;margin-top:30px}
 
   <section>
     <h2>2. Preparar la exportación</h2>
-    <p class="sub">La calidad se controla con el bitrate: más calidad significa un archivo más pesado.</p>
+    <p class="sub">El perfil TikTok usa un bitrate más alto para intentar conservar más detalle. El archivo resultante puede ser más pesado.</p>
     <div class="grid">
+      <label class="f">Perfil de exportación
+        <select id="profile">
+          <option value="tiktok" selected>Optimizar para TikTok</option>
+          <option value="normal">Normal</option>
+        </select>
+      </label>
       <label class="f">Frecuencia de cuadros
         <select id="fps"><option value="src" selected>Conservar FPS de origen</option><option value="30">30 FPS</option><option value="60">60 FPS</option><option value="120">120 FPS</option></select></label>
       <label class="f">Calidad
@@ -104,7 +110,7 @@ footer{color:var(--mu);font-size:13px;text-align:center;margin-top:30px}
 (() => {
 'use strict';
 const $ = (s) => document.querySelector(s);
-const BPP = { 16: .20, 18: .15, 20: .11, 23: .075, 26: .05 };          // bits por píxel
+const BPP = { 16: .20, 18: .15, 20: .11, 23: .075, 26: .05 };
 const SIZES = { keep: null, hd_h: [1920, 1080], hd_v: [1080, 1920], uhd_h: [3840, 2160], uhd_v: [2160, 3840] };
 let file = null, info = null, cancel = false, busy = false, outUrl = null;
 
@@ -187,7 +193,23 @@ async function convert() {
     const fpsBase = outFps || info.fps;
     const size = SIZES[$('#res').value];
     const W = ((size ? size[0] : info.w) >> 1) << 1, H = ((size ? size[1] : info.h) >> 1) << 1;
-    const bitrate = Math.round(W * H * fpsBase * BPP[$('#q').value]);
+
+    // Perfil de bitrate.
+    // TikTok: bitrate objetivo más alto, con límites para evitar archivos excesivos.
+    // Normal: conserva el cálculo original según la calidad seleccionada.
+    const profile = $('#profile').value;
+    let bitrate;
+
+    if (profile === 'tiktok') {
+      bitrate = Math.round(
+        Math.min(20_000_000, Math.max(8_000_000, W * H * fpsBase * 0.18))
+      );
+    } else {
+      bitrate = Math.round(
+        W * H * fpsBase * BPP[$('#q').value]
+      );
+    }
+
     const rot = info.rot, useCanvas = rot !== 0 || !!size;
 
     let codec = null;
